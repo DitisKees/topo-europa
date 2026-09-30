@@ -195,5 +195,5 @@ export default defineConfig(({ command, isPreview, mode }) => {
       : []),
     viteReact(),
   ],
-}  };
+  };
 });
