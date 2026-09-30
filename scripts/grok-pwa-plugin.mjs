@@ -153,10 +153,12 @@ function wrapHtmlResponses(middlewares, cwd) {
 
 export function grokPwaPlugin() {
   let root = process.cwd();
+  let base = "/";
   return {
     name: "app-builder:grok-pwa",
     configResolved(config) {
       root = config.root;
+      base = config.base || "/";
     },
     resolveId(id) {
       if (id === GROK_OG_IDENTITY_ID) return `\0${GROK_OG_IDENTITY_ID}`;
@@ -166,10 +168,13 @@ export function grokPwaPlugin() {
       return `export const grokOgIdentity = ${JSON.stringify(snapshotOgIdentity(root))};`;
     },
     transformIndexHtml(html) {
-      return injectGrokPwaHead(html, {
+      const transformed = injectGrokPwaHead(html, {
         host: process.env.VITE_PUBLIC_HOSTNAME ?? "",
         cwd: root,
       });
+      if (base === "/") return transformed;
+      const prefix = base.endsWith("/") ? base : `${base}/`;
+      return transformed.replaceAll('href="/__grok/', `href="${prefix}__grok/`);
     },
     configureServer(server) {
       // Registered directly (not in a returned post-hook) so both run BEFORE
