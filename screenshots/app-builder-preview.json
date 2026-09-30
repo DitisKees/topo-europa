@@ -1,0 +1,36 @@
+{
+  "url": "http://127.0.0.1:8080/",
+  "viewports": {
+    "desktop": {
+      "width": 1280,
+      "height": 800,
+      "status": 200,
+      "title": "Topo Europa",
+      "hasCanvas": false,
+      "bodyTextLen": 408,
+      "bodyTextHash": "12061b1498caf151cba3100eb94b9ca6f64deabb7928c517ae9479e7e1298b73",
+      "bodyTextPrefix": "Topo Europa Oefenen Atlas Voortgang TOPOGRAFIE Europa, tot je de",
+      "horizontalOverflow": false,
+      "consoleErrors": [],
+      "pageErrors": [],
+      "screenshot": "/workspace/screenshots/app-builder-preview.png"
+    },
+    "mobile": {
+      "width": 390,
+      "height": 844,
+      "status": 200,
+      "title": "Topo Europa",
+      "hasCanvas": false,
+      "bodyTextLen": 384,
+      "bodyTextHash": "ce42680f5b2054b4bd889dd3421ad608d2ab794cfc6d35d53876c99383caf049",
+      "bodyTextPrefix": "Topo Europa TOPOGRAFIE Europa, tot je de kaart kent. Oefen lande",
+      "horizontalOverflow": false,
+      "consoleErrors": [],
+      "pageErrors": [],
+      "screenshot": "/workspace/screenshots/app-builder-preview-mobile.png"
+    }
+  },
+  "brandWarnings": [],
+  "authWarnings": [],
+  "verdictFile": "/workspace/screenshots/app-builder-preview.json"
+}

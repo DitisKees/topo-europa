@@ -1,0 +1,167 @@
+@import "tailwindcss";
+
+@theme {
+  --font-display: "Fraunces", "Iowan Old Style", Georgia, "Times New Roman", serif;
+  --font-sans: "Figtree", ui-sans-serif, system-ui, sans-serif;
+
+  --color-bg: #f3efe6;
+  --color-bg-elevated: #faf7f0;
+  --color-surface: #e8e2d4;
+  --color-fg: #1c1d19;
+  --color-muted: #5c5a54;
+  --color-subtle: #8a867c;
+  --color-border: #d5cebe;
+  --color-primary: #1f4a42;
+  --color-primary-fg: #f3efe6;
+  --color-water: #c5d4d0;
+  --color-water-deep: #b7c7c3;
+  --color-land: #e7e1d4;
+  --color-land-hover: #d9d0be;
+  --color-land-stroke: #7d786c;
+  --color-ink: #1c1d19;
+  --color-correct: #2f6a4f;
+  --color-correct-soft: #d7eadf;
+  --color-wrong: #8f3a38;
+  --color-wrong-soft: #f0d6d4;
+  --color-focus: #1f4a42;
+
+  --radius-xs: 4px;
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 18px;
+  --radius-xl: 28px;
+
+  --shadow-border:
+    0px 0px 0px 1px rgba(28, 29, 25, 0.06),
+    0px 1px 2px -1px rgba(28, 29, 25, 0.06),
+    0px 2px 8px 0px rgba(28, 29, 25, 0.04);
+  --shadow-border-hover:
+    0px 0px 0px 1px rgba(28, 29, 25, 0.1),
+    0px 2px 8px -1px rgba(28, 29, 25, 0.08);
+
+  --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+  --motion-quick: 150ms;
+  --motion-fast: 250ms;
+}
+
+@layer base {
+  html {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  html,
+  body,
+  #app {
+    min-height: 100%;
+  }
+
+  body {
+    background: var(--color-bg);
+    color: var(--color-fg);
+    font-family: var(--font-sans);
+    line-height: 1.5;
+  }
+
+  button:not(:disabled),
+  [role="button"]:not(:disabled) {
+    cursor: pointer;
+  }
+
+  h1,
+  h2,
+  h3 {
+    text-wrap: balance;
+    font-family: var(--font-display);
+  }
+
+  p {
+    text-wrap: pretty;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+.land-path {
+  fill: var(--color-land);
+  stroke: var(--color-land-stroke);
+  stroke-width: 0.7;
+  stroke-linejoin: round;
+  vector-effect: non-scaling-stroke;
+  transition:
+    fill var(--motion-quick) var(--ease-out),
+    opacity var(--motion-quick) var(--ease-out);
+}
+
+.land-path.is-interactive {
+  cursor: pointer;
+}
+
+.land-path.is-interactive:hover,
+.land-path.is-hovered {
+  fill: var(--color-land-hover);
+}
+
+.land-path.is-selected {
+  fill: var(--color-primary);
+  stroke: var(--color-primary);
+}
+
+.land-path.is-selected.is-interactive:hover {
+  fill: var(--color-primary);
+}
+
+.land-path.is-correct {
+  fill: var(--color-correct);
+  stroke: var(--color-correct);
+}
+
+.land-path.is-wrong {
+  fill: var(--color-wrong);
+  stroke: var(--color-wrong);
+}
+
+.land-path.is-dim {
+  fill: color-mix(in oklab, var(--color-land) 70%, var(--color-water));
+  opacity: 0.55;
+}
+
+.land-path.is-atlas-active {
+  fill: var(--color-primary);
+  stroke: var(--color-ink);
+}
+
+.map-water {
+  fill: var(--color-water);
+}
+
+.capital-dot {
+  fill: var(--color-ink);
+  stroke: var(--color-bg-elevated);
+  stroke-width: 1.25;
+  vector-effect: non-scaling-stroke;
+}
+
+.capital-dot.is-interactive {
+  cursor: pointer;
+}
+
+.capital-dot.is-correct {
+  fill: var(--color-correct);
+}
+
+.capital-dot.is-wrong {
+  fill: var(--color-wrong);
+}
+
+.capital-dot.is-target {
+  fill: var(--color-primary);
+}
