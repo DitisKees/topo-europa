@@ -1,0 +1,17 @@
+{
+  "name": "Topo Europa",
+  "short_name": "Topo Europa",
+  "id": "/topo-europa/",
+  "start_url": "/topo-europa/",
+  "scope": "/topo-europa/",
+  "display": "standalone",
+  "background_color": "#000000",
+  "theme_color": "#1f4a42",
+  "icons": [
+    {
+      "src": "icon-180.png",
+      "sizes": "180x180",
+      "type": "image/png"
+    }
+  ]
+}
