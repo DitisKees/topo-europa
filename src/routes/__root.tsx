@@ -4,7 +4,7 @@ import { PreviewHostBridge } from "@/components/preview-host-bridge";
 import appCss from "../styles.css?url";
 
 const APP_NAME = "Topo Europa";
-const withBase = (path: string) => `${import.meta.env.BASE_URL}${path.replace(/^\\/+/, "")}`;
+const withBase = (path: string) => `${import.meta.env.BASE_URL}${path.replace(/^\/+/, "")}`;
 
 export const Route = createRootRoute({
   head: () => ({
