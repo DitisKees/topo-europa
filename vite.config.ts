@@ -146,7 +146,7 @@ function authPopupPlugin(): Plugin {
 // The dev server starts once `src/router.tsx` and `src/routes/` exist — see
 // AGENTS.md § "First scaffold".
 export default defineConfig(({ command, isPreview, mode }) => {
-  const isGitHubPages = mode === "github-pages";
+  const isGitHubPages = mode === "github-pages" || process.env.GITHUB_PAGES_BUILD === "true";
 
   return {
     base: isGitHubPages ? "/topo-europa/" : "/",
