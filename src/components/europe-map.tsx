@@ -30,6 +30,8 @@ type Props = {
 };
 
 type View = { tx: number; ty: number; k: number };
+type Point = { x: number; y: number };
+type Pinch = { distance: number; cx: number; cy: number; moved: boolean };
 
 export function EuropeMap({
   interactive = true,
@@ -52,9 +54,44 @@ export function EuropeMap({
     ty: number;
     moved: boolean;
   } | null>(null);
+  const pointers = useRef(new Map<number, Point>());
+  const pinch = useRef<Pinch | null>(null);
+  const ignoreClicksUntil = useRef(0);
 
   const shapes = europeMap.countries;
   const entries = useMemo(() => Object.entries(shapes), [shapes]);
+
+  const toSvgPoint = useCallback((svg: SVGSVGElement, clientX: number, clientY: number): Point => {
+    const ctm = svg.getScreenCTM();
+    if (ctm) {
+      const point = svg.createSVGPoint();
+      point.x = clientX;
+      point.y = clientY;
+      const local = point.matrixTransform(ctm.inverse());
+      return { x: local.x, y: local.y };
+    }
+
+    const rect = svg.getBoundingClientRect();
+    return {
+      x: ((clientX - rect.left) / rect.width) * europeMap.width,
+      y: ((clientY - rect.top) / rect.height) * europeMap.height,
+    };
+  }, []);
+
+  const getPinch = useCallback(
+    (svg: SVGSVGElement): Pinch | null => {
+      const [a, b] = Array.from(pointers.current.values());
+      if (!a || !b) return null;
+      const midpoint = toSvgPoint(svg, (a.x + b.x) / 2, (a.y + b.y) / 2);
+      return {
+        distance: Math.hypot(b.x - a.x, b.y - a.y),
+        cx: midpoint.x,
+        cy: midpoint.y,
+        moved: false,
+      };
+    },
+    [toSvgPoint],
+  );
 
   const zoomAt = useCallback((cx: number, cy: number, factor: number) => {
     setView((prev) => {
@@ -77,6 +114,17 @@ export function EuropeMap({
 
   const onPointerDown = (event: ReactPointerEvent<SVGSVGElement>) => {
     if (decorative) return;
+
+    pointers.current.set(event.pointerId, { x: event.clientX, y: event.clientY });
+    event.currentTarget.setPointerCapture(event.pointerId);
+
+    if (pointers.current.size >= 2) {
+      drag.current = null;
+      pinch.current = getPinch(event.currentTarget);
+      return;
+    }
+
+    pinch.current = null;
     drag.current = {
       pointerId: event.pointerId,
       x: event.clientX,
@@ -85,34 +133,71 @@ export function EuropeMap({
       ty: view.ty,
       moved: false,
     };
-    event.currentTarget.setPointerCapture(event.pointerId);
   };
 
   const onPointerMove = (event: ReactPointerEvent<SVGSVGElement>) => {
+    if (!pointers.current.has(event.pointerId)) return;
+    pointers.current.set(event.pointerId, { x: event.clientX, y: event.clientY });
+
+    if (pointers.current.size >= 2) {
+      const nextPinch = getPinch(event.currentTarget);
+      const previousPinch = pinch.current;
+      if (!nextPinch) return;
+      if (!previousPinch || previousPinch.distance <= 0) {
+        pinch.current = nextPinch;
+        return;
+      }
+
+      const midpointShift = Math.hypot(nextPinch.cx - previousPinch.cx, nextPinch.cy - previousPinch.cy);
+      const distanceShift = Math.abs(nextPinch.distance - previousPinch.distance);
+      const moved = previousPinch.moved || midpointShift > 1 || distanceShift > 2;
+      if (moved) ignoreClicksUntil.current = Date.now() + 300;
+
+      const factor = nextPinch.distance / previousPinch.distance;
+      setView((prev) => {
+        const k = Math.min(MAX_K, Math.max(MIN_K, prev.k * factor));
+        const wx = (previousPinch.cx - prev.tx) / prev.k;
+        const wy = (previousPinch.cy - prev.ty) / prev.k;
+        return {
+          k,
+          tx: nextPinch.cx - wx * k,
+          ty: nextPinch.cy - wy * k,
+        };
+      });
+      pinch.current = { ...nextPinch, moved };
+      return;
+    }
+
     const d = drag.current;
     if (!d || d.pointerId !== event.pointerId) return;
-    const svg = event.currentTarget;
-    const rect = svg.getBoundingClientRect();
-    const dx = ((event.clientX - d.x) / rect.width) * europeMap.width;
-    const dy = ((event.clientY - d.y) / rect.height) * europeMap.height;
+    const start = toSvgPoint(event.currentTarget, d.x, d.y);
+    const current = toSvgPoint(event.currentTarget, event.clientX, event.clientY);
+    const dx = current.x - start.x;
+    const dy = current.y - start.y;
     if (Math.abs(event.clientX - d.x) + Math.abs(event.clientY - d.y) > 4) {
       d.moved = true;
+      ignoreClicksUntil.current = Date.now() + 300;
     }
     setView((prev) => ({ ...prev, tx: d.tx + dx, ty: d.ty + dy }));
   };
 
-  const endDrag = () => {
+  const endPointer = (event: ReactPointerEvent<SVGSVGElement>) => {
+    pointers.current.delete(event.pointerId);
+    if (pointers.current.size < 2) pinch.current = null;
     drag.current = null;
+    if (event.currentTarget.hasPointerCapture(event.pointerId)) {
+      event.currentTarget.releasePointerCapture(event.pointerId);
+    }
   };
 
   const handleCountry = (id: string) => {
-    if (drag.current?.moved) return;
+    if (Date.now() < ignoreClicksUntil.current) return;
     if (!interactive || decorative) return;
     onCountry?.(id);
   };
 
   const handleCapital = (id: string) => {
-    if (drag.current?.moved) return;
+    if (Date.now() < ignoreClicksUntil.current) return;
     onCapital?.(id);
   };
 
@@ -129,8 +214,8 @@ export function EuropeMap({
         onWheel={onWheel}
         onPointerDown={onPointerDown}
         onPointerMove={onPointerMove}
-        onPointerUp={endDrag}
-        onPointerCancel={endDrag}
+        onPointerUp={endPointer}
+        onPointerCancel={endPointer}
       >
         <rect className="map-water" width={europeMap.width} height={europeMap.height} />
         <g transform={`translate(${view.tx} ${view.ty}) scale(${view.k})`}>
