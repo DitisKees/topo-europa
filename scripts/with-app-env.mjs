@@ -111,6 +111,10 @@ function main(argv) {
     process.exit(2);
   }
   const env = mergeAppEnv(readAppEnv(projectRoot()), process.env);
+  const modeIndex = args.indexOf("--mode");
+  if (modeIndex >= 0 && args[modeIndex + 1] === "github-pages") {
+    env.GITHUB_PAGES_BUILD = "true";
+  }
   const child = spawn(command, args, { stdio: "inherit", env });
   // The dev server is long-running and is stopped by signalling this wrapper.
   for (const signal of ["SIGINT", "SIGTERM", "SIGHUP"]) {
